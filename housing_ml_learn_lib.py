@@ -46,3 +46,10 @@ class LabelBinarizer_new(BaseEstimator, TransformerMixin):
         encoder = LabelBinarizer()
         result = encoder.fit_transform(X)
         return result
+
+
+def display_scores(scores):
+    """display the scores calculated from cross-validation"""
+    print("Scores:", scores)
+    print("Mean:", scores.mean())
+    print("Standard deviation:", scores.std())

@@ -1,17 +1,24 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.model_selection import StratifiedShuffleSplit
+import os
+from sklearn.model_selection import StratifiedShuffleSplit, cross_val_score, \
+    GridSearchCV
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.preprocessing import StandardScaler, Imputer
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error
+from sklearn.ensemble import RandomForestRegressor
+# from sklearn.metrics import mean_squared_error
+from sklearn.externals import joblib
 from housing_ml_learn_lib import CombinedAttributesAdder, DataFrameSelector, \
-    LabelBinarizer_new
-
+    LabelBinarizer_new, display_scores
 
 # Load housing data
-housing = pd.read_csv("housing.csv")
+filename = 'housing.csv'
+filepath = os.path.join(os.path.expanduser('~'), 'Dropbox (MIT)',
+                        'Linux', 'ML_learn', filename)
+housing = pd.read_csv(filepath)
 
 # Create a new category for train test data split
 housing["income_cat"] = np.ceil(housing["median_income"] / 1.5)
@@ -61,11 +68,39 @@ full_pipeline = FeatureUnion(transformer_list=[
 housing_prepared = full_pipeline.fit_transform(housing)
 
 # Train a Linear Regression model.
-lin_reg = LinearRegression()
-lin_reg.fit(housing_prepared, housing_labels)
-housing_predictions = lin_reg.predict(housing_prepared)
+# lin_reg = LinearRegression()
+# lin_reg.fit(housing_prepared, housing_labels)
+# housing_predictions = lin_reg.predict(housing_prepared)
 
 # Evaluate the performance of the Linear Model
-lin_mse = mean_squared_error(housing_labels, housing_predictions)
-lin_rmse = np.sqrt(lin_mse)
-print(lin_rmse)
+# lin_mse = mean_squared_error(housing_labels, housing_predictions)
+# lin_rmse = np.sqrt(lin_mse)
+# print(lin_rmse)
+
+# Calculate the performance using cross-validation method.
+# lin_scores = cross_val_score(lin_reg, housing_prepared, housing_labels,
+#                              scoring="neg_mean_squared_error", cv=10)
+# lin_rmse_scores = np.sqrt(-lin_scores)
+# display_scores(lin_rmse_scores)
+
+# save the model
+# joblib.dump(lin_reg, "lin_reg.pkl")
+
+# load the model
+# lin_reg = joblib.load("lin_reg.pkl")
+
+# Seach for the best combination of hyperparameter values for the model.
+# param_grid = [
+#     {'n_estimators': [3, 10, 30], 'max_features': [2, 4, 6, 8]},
+#     {'bootstrap': [False], 'n_estimators': [3, 10], 'max_features': [2, 3, 4]},
+# ]
+#
+# # train forest_reg model.
+# forest_reg = RandomForestRegressor()
+# grid_search = GridSearchCV(forest_reg, param_grid, cv=5,
+#                            scoring='neg_mean_squared_error')
+# grid_search.fit(housing_prepared, housing_labels)
+# joblib.dump(grid_search, "grid_search.pkl")
+
+grid_search = joblib.load("grid_search.pkl")
+print(grid_search.best_params)
