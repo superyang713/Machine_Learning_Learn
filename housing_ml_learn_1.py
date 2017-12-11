@@ -103,4 +103,4 @@ housing_prepared = full_pipeline.fit_transform(housing)
 # joblib.dump(grid_search, "grid_search.pkl")
 
 grid_search = joblib.load("grid_search.pkl")
-print(grid_search.best_params)
+print(grid_search.best_params_)
