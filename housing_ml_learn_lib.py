@@ -1,6 +1,10 @@
+import pandas as pd
 import numpy as np
+import os
+from sklearn.preprocessing import LabelBinarizer, StandardScaler, Imputer
+from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.preprocessing import LabelBinarizer
+from sklearn.pipeline import Pipeline, FeatureUnion
 
 
 class CombinedAttributesAdder(BaseEstimator, TransformerMixin):
@@ -53,3 +57,60 @@ def display_scores(scores):
     print("Scores:", scores)
     print("Mean:", scores.mean())
     print("Standard deviation:", scores.std())
+
+
+def train_test_split(filename):
+    """load the file and create the train and test data sets"""
+    # load the data file.
+    filepath = os.path.join(os.path.expanduser('~'), 'Dropbox (MIT)',
+                            'Linux', 'ML_learn', filename)
+    housing = pd.read_csv(filepath)
+
+    # Create a new category for train test data split
+    housing["income_cat"] = np.ceil(housing["median_income"] / 1.5)
+    housing["income_cat"].where(housing["income_cat"] < 5, 5.0, inplace=True)
+
+    # Perform stratified sampling based on the newly created category.
+    split = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
+    for train_index, test_index in split.split(housing, housing["income_cat"]):
+        strat_train_set = housing.loc[train_index]
+        strat_test_set = housing.loc[test_index]
+
+    # Remove income_cat attribute that was used for stratified sampling.
+    for set_ in (strat_train_set, strat_test_set):
+        set_.drop("income_cat", axis=1, inplace=True)
+    return strat_train_set, strat_test_set
+
+
+def data_transform(housing):
+    """clean the data and transform the text cat into binary"""
+    # Separate the text-based and number-based attributes. Text-based attribute
+    # needs to be transformed via binarizer.
+    # Since pipeline is going to be used, and there is a custom attribute
+    # selector.
+    # created in the lib, we just need to list the attributes.
+    housing_num = housing.drop("ocean_proximity", axis=1)
+    num_attribs = list(housing_num)
+    cat_attribs = ["ocean_proximity"]
+
+    # Set up the pipeline for the number-based attributes
+    num_pipeline = Pipeline([
+        ('selector', DataFrameSelector(num_attribs)),
+        ('imputer', Imputer(strategy="median")),
+        ('attribs_adder', CombinedAttributesAdder()),
+        ('std_scaler', StandardScaler(num_attribs)),
+    ])
+
+    # Set up the pipeline for the text-based attributes
+    cat_pipeline = Pipeline([
+        ('selector', DataFrameSelector(cat_attribs)),
+        ('label_binarizer', LabelBinarizer_new()),
+    ])
+
+    # Combine the two pipelines
+    full_pipeline = FeatureUnion(transformer_list=[
+        ('num_pipeline', num_pipeline),
+        ('cat_pipeline', cat_pipeline),
+    ])
+    housing_prepared = full_pipeline.fit_transform(housing)
+    return housing_prepared
