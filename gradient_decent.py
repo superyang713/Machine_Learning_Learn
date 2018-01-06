@@ -12,8 +12,8 @@ def normal_equation():
 
 
 def batch_gradient_descent():
-    """Main program"""
-    eta = 0.1  # Learning rate
+    """batch gradient descent"""
+    eta = 0.2  # Learning rate
     n_iteration = 1000
     m = 100
     theta = np.random.rand(2, 1)
@@ -46,4 +46,4 @@ def stochastic_gradient_descent():
 if __name__ == '__main__':
     normal_equation()
     batch_gradient_descent()
-    stochastic_gradient_descent()
+    #stochastic_gradient_descent()
