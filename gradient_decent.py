@@ -13,7 +13,7 @@ def normal_equation():
 
 def batch_gradient_descent():
     """batch gradient descent"""
-    eta = 0.2  # Learning rate
+    eta = 0.1  # Learning rate
     n_iteration = 1000
     m = 100
     theta = np.random.rand(2, 1)
