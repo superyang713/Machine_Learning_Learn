@@ -13,3 +13,5 @@ theta = tf.matmul(tf.matmul(tf.matrix_inverse(tf.matmul(XT, X)), XT), y)
 
 with tf.Session() as sess:
     theta_value = theta.eval()
+
+print(theta_value)
